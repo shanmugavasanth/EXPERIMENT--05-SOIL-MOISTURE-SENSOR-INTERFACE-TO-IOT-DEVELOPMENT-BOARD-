@@ -100,76 +100,64 @@ GND is the ground pin.
 ```
 
 #include "main.h"
-#include "Soil Moisture Sensor.h"
 #include "stdio.h"
-
+uint32_t adc_val;
+ADC_HandleTypeDef hadc;
 UART_HandleTypeDef huart2;
+uint32_t adc_val;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_ADC_Init(void);
 static void MX_USART2_UART_Init(void);
-void ADC_Init(void);
-void GPIO_Init(void);
-
-#if defined (__ICCARM__) || defined (__ARMCC_VERSION)
+#if defined (_ICCARM) || defined (_ARMCC_VERSION)
 #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#elif defined(__GNUC__)
+#elif defined(_GNUC_)
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 #endif 
 
 PUTCHAR_PROTOTYPE
 {
     HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
-    return ch;
+	   return ch;
 }
 
 int main(void)
 {
-    HAL_Init();
-    SystemClock_Config();
+	   HAL_Init();
+	   SystemClock_Config();
     MX_GPIO_Init();
+    MX_ADC_Init();
     MX_USART2_UART_Init();
-    ADC_Init();
-    GPIO_Init();
+
     while (1)
     {
-        soil_moisture();
-    }
+		      HAL_ADC_Start(&hadc);
+	  	    HAL_ADC_PollForConversion(&hadc,100);
+	  	    adc_val = HAL_ADC_GetValue(&hadc);
+	  	    HAL_ADC_Stop(&hadc);
+	  	    HAL_Delay(500);
+		      uint32_t soilmoist;
+        soilmoist=adc_val/10.24;
+	      	printf("soilmoisture :%ld\n",soilmoist);
+	      	if(adc_val<500)
+	      	{
+	  		       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);;
+	  	    }
+	  	    if(adc_val>500)
+	  	    {
+	  		       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);;
+	  	    }
+   	}
 }
-
-void SystemClock_Config(void)
-{
-    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
-    RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-    RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
-    RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
-    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK3 | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 |  RCC_CLOCKTYPE_PCLK2;
-    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
-    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-    RCC_ClkInitStruct.AHBCLK3Divider = RCC_SYSCLK_DIV1;
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
-    {
-        Error_Handler();
-    }
-}
- 
 ```
 
 
 ## Output screen shots on serial monitor   :
  
- ![IOTex-05](https://github.com/shanmugavasanth/EXPERIMENT--05-SOIL-MOISTURE-SENSOR-INTERFACE-TO-IOT-DEVELOPMENT-BOARD-/assets/144870621/389bab9b-7b0c-4231-b189-e4434660bc0e)
+![WhatsApp Image 2024-05-10 at 09 24 12_2a54229d](https://github.com/shanmugavasanth/EXPERIMENT--05-SOIL-MOISTURE-SENSOR-INTERFACE-TO-IOT-DEVELOPMENT-BOARD-/assets/144870621/476e07d4-2b26-464e-96a7-aabd1b49009b)
 
- ![IOTEX-05](https://github.com/shanmugavasanth/EXPERIMENT--05-SOIL-MOISTURE-SENSOR-INTERFACE-TO-IOT-DEVELOPMENT-BOARD-/assets/144870621/82d6ff8c-386a-4525-bbe6-c714b90aaab0)
+
+![WhatsApp Image 2024-05-10 at 09 17 32_1d21eaa2](https://github.com/shanmugavasanth/EXPERIMENT--05-SOIL-MOISTURE-SENSOR-INTERFACE-TO-IOT-DEVELOPMENT-BOARD-/assets/144870621/f4ae94ab-5afc-4c3c-88da-664777695113)
 
  
 ## Result :
